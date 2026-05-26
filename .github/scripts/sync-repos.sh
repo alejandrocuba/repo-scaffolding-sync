@@ -63,8 +63,8 @@ if [ -n "${SYNC_TOKEN:-}" ]; then
   git config --global url."https://x-access-token:${SYNC_TOKEN}@github.com/".insteadOf "https://github.com/"
 fi
 
-# Temporary working directory
-TEMP_DIR=$(mktemp -d)
+# Temporary working directory (creates in workspace to comply with sandboxed environments)
+TEMP_DIR=$(mktemp -d ./tmp-sync-XXXXXX 2>/dev/null || mktemp -d)
 cleanup() {
   echo "Cleaning up..."
   if [ -n "${SYNC_TOKEN:-}" ]; then
@@ -84,8 +84,12 @@ for REPO in "${TARGET_REPOS[@]}"; do
   REPO_DIR="$TEMP_DIR/$REPO"
   mkdir -p "$(dirname "$REPO_DIR")"
 
-  # Clone target repo securely (the global config will inject the token automatically)
-  git clone "https://github.com/${REPO}.git" "$REPO_DIR"
+  # Clone target repo securely (uses HTTPS with token if available, otherwise SSH)
+  if [ -n "${SYNC_TOKEN:-}" ]; then
+    git clone "https://github.com/${REPO}.git" "$REPO_DIR"
+  else
+    git clone "git@github.com:${REPO}.git" "$REPO_DIR"
+  fi
 
   # Copy files from templates folder to target root
   CHANGES_MADE=false
@@ -148,21 +152,44 @@ EOF
       # Push branch to remote (force push to overwrite previous template updates)
       git push origin "$BRANCH_NAME" --force
 
-      # Open Pull Request via GitHub CLI
-      export GITHUB_TOKEN="$SYNC_TOKEN"
-      
-      # Check if PR already exists
-      PR_EXISTS=$(gh pr list --head "$BRANCH_NAME" --state open --json number -q '.[0].number')
+      # Detect host repository for PR body link
+      CURRENT_REPO="${GITHUB_REPOSITORY:-}"
+      if [ -z "$CURRENT_REPO" ]; then
+        # Extract from origin URL
+        REMOTE_URL=$(git remote get-url origin 2>/dev/null || echo "")
+        if [[ "$REMOTE_URL" =~ github.com[:/]([^/]+/[^.]+)(\.git)? ]]; then
+          CURRENT_REPO="${BASH_REMATCH[1]}"
+        fi
+      fi
 
-      if [ -z "$PR_EXISTS" ]; then
-        echo "Opening a new Pull Request..."
-        gh pr create \
-          --title "chore: sync repository scaffolding templates" \
-          --body "This automated PR syncs the latest repository scaffolding templates (AGENTS.md, DESIGN-SYSTEM.md, SECURITY.md, etc.) from the central [repository-scaffolding](https://github.com/${GITHUB_REPOSITORY}) repository." \
-          --base main \
-          --head "$BRANCH_NAME"
+      if command -v gh >/dev/null 2>&1; then
+        # Open Pull Request via GitHub CLI
+        if [ -n "${SYNC_TOKEN:-}" ]; then
+          export GITHUB_TOKEN="$SYNC_TOKEN"
+        fi
+        
+        # Check if PR already exists
+        PR_EXISTS=$(gh pr list --head "$BRANCH_NAME" --state open --json number -q '.[0].number')
+
+        PR_BODY="This automated PR syncs the latest repository scaffolding templates (AGENTS.md, DESIGN-SYSTEM.md, SECURITY.md, etc.)"
+        if [ -n "$CURRENT_REPO" ]; then
+          PR_BODY="$PR_BODY from the central [repository-scaffolding](https://github.com/${CURRENT_REPO}) repository."
+        else
+          PR_BODY="$PR_BODY from the central repository."
+        fi
+
+        if [ -z "$PR_EXISTS" ]; then
+          echo "Opening a new Pull Request..."
+          gh pr create \
+            --title "chore: sync repository scaffolding templates" \
+            --body "$PR_BODY" \
+            --base main \
+            --head "$BRANCH_NAME"
+        else
+          echo "Pull Request #$PR_EXISTS already exists and was successfully updated."
+        fi
       else
-        echo "Pull Request #$PR_EXISTS already exists and was successfully updated."
+        echo "Warning: GitHub CLI (gh) is not installed or not in PATH. Skipping Pull Request creation/check."
       fi
     else
       echo "No changes detected for $REPO."
