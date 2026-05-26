@@ -78,8 +78,10 @@ The synchronization script requires write access to the consumer repositories to
    4. Fill out the token details:
       * **Token name**: `Template Sync Token`.
       * **Expiration**: Select your preferred duration (e.g., 90 days).
-      * **Repository access**: Choose **Only select repositories** and select your target consumer repositories (e.g., `owner/repository`).
-      * **Repository permissions**: Expand **Permissions** -> **Repository permissions** -> Find **Contents** and change access to **Read and Write**.
+      * **Repository access**: Select **Only select repositories** and pick your target consumer repositories (e.g., `owner/repository`).
+      * **Repository permissions**: Expand **Permissions** -> **Repository permissions** and set:
+        * **Contents**: Select **Read and Write** (required to push the scaffolding updates branch).
+        * **Pull requests**: Select **Read and Write** (required to open and manage Pull Requests via GitHub CLI).
    5. Click **Generate token**.
    6. **Copy the generated token** immediately. *Note: You will not be able to see this token again once you leave the page.*
 
