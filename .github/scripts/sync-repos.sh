@@ -1,32 +1,58 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# ==============================================================================
-# Configuration: Target repositories and files to synchronize
-# ==============================================================================
+# Resolve the absolute path of the repository root relative to this script
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
-# List of consumer repositories (Format: "owner/repo")
-TARGET_REPOS=(
-  "zorphdark/yolandasantacruz-portfolio"
-)
+REPOS_FILE="$PROJECT_ROOT/target-repos.yml"
+FILES_FILE="$PROJECT_ROOT/files-to-sync.yml"
 
-# Files to sync from templates/ to the root of target repositories
-FILES_TO_SYNC=(
-  "AGENTS.core.md"
-  "DESIGN-SYSTEM.core.md"
-  "SECURITY.md"
-  "LICENSE"
-  "CONTRIBUTING.md"
-  ".gitignore"
-  ".aiignore"
-  ".claudeignore"
-  ".cursorignore"
-  ".copilotignore"
-  ".gptignore"
-  # Monorepo files (uncomment for repositories that use pnpm workspaces)
-  # "pnpm-workspace.yaml"
-  # ".npmrc"
-)
+# Load target repositories from target-repos.yml
+TARGET_REPOS=()
+if [ -f "$REPOS_FILE" ]; then
+  while IFS= read -r line || [[ -n "$line" ]]; do
+    # Trim leading/trailing whitespace
+    line="${line#"${line%%[![:space:]]*}"}"
+    line="${line%"${line##*[![:space:]]}"}"
+    # Skip empty lines, comments, and non-list lines
+    [[ -z "$line" || "$line" =~ ^# || ! "$line" =~ ^-[[:space:]]* ]] && continue
+    # Extract the repository name (strip the leading '-' and whitespace)
+    repo="${line#*-}"
+    repo="${repo#"${repo%%[![:space:]]*}"}"
+    repo="${repo%"${repo##*[![:space:]]}"}"
+    # Strip any leading/trailing quotes
+    repo="${repo#[\"\']}"
+    repo="${repo%[\"\']}"
+    TARGET_REPOS+=("$repo")
+  done < "$REPOS_FILE"
+else
+  echo "Error: Repositories configuration file not found at $REPOS_FILE" >&2
+  exit 1
+fi
+
+# Load files to synchronize from files-to-sync.yml
+FILES_TO_SYNC=()
+if [ -f "$FILES_FILE" ]; then
+  while IFS= read -r line || [[ -n "$line" ]]; do
+    # Trim leading/trailing whitespace
+    line="${line#"${line%%[![:space:]]*}"}"
+    line="${line%"${line##*[![:space:]]}"}"
+    # Skip empty lines, comments, and non-list lines
+    [[ -z "$line" || "$line" =~ ^# || ! "$line" =~ ^-[[:space:]]* ]] && continue
+    # Extract the file path (strip the leading '-' and whitespace)
+    file="${line#*-}"
+    file="${file#"${file%%[![:space:]]*}"}"
+    file="${file%"${file##*[![:space:]]}"}"
+    # Strip any leading/trailing quotes
+    file="${file#[\"\']}"
+    file="${file%[\"\']}"
+    FILES_TO_SYNC+=("$file")
+  done < "$FILES_FILE"
+else
+  echo "Error: Files to synchronize configuration file not found at $FILES_FILE" >&2
+  exit 1
+fi
 
 # ==============================================================================
 # Helper Functions
@@ -94,7 +120,7 @@ for REPO in "${TARGET_REPOS[@]}"; do
   # Copy files from templates folder to target root
   CHANGES_MADE=false
   for FILE in "${FILES_TO_SYNC[@]}"; do
-    SRC="templates/$FILE"
+    SRC="$PROJECT_ROOT/templates/$FILE"
     DEST="$REPO_DIR/$FILE"
 
     if [ -f "$SRC" ]; then

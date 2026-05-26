@@ -1,0 +1,16 @@
+# Files to sync from templates/ to the root of target repositories
+files:
+  - AGENTS.core.md
+  - DESIGN-SYSTEM.core.md
+  - SECURITY.md
+  - LICENSE
+  - CONTRIBUTING.md
+  - .gitignore
+  - .aiignore
+  - .claudeignore
+  - .cursorignore
+  - .copilotignore
+  - .gptignore
+  # Monorepo files (uncomment for repositories that use pnpm workspaces)
+  # - pnpm-workspace.yaml
+  # - .npmrc
