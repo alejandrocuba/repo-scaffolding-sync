@@ -69,26 +69,26 @@ files:
 
 The synchronization script requires write access to the consumer repositories to push branches and open Pull Requests. To configure this:
 
-#### Phase 1. Generate a Fine-Grained Personal Access Token (PAT)
-Fine-grained PATs are recommended as they follow the principle of least privilege, restricting access to only the specific target repositories.
+1. **Generate a Fine-Grained Personal Access Token (PAT)**:
+   Fine-grained PATs are recommended as they follow the principle of least privilege, restricting access to only the specific target repositories.
 
-1. Go to your GitHub account **Settings** (click your profile picture in the top-right -> **Settings**).
-2. Scroll to the bottom of the left sidebar and click **Developer settings**.
-3. Click **Personal Access Tokens** -> **Fine-grained tokens** -> **Generate new token**.
-4. Fill out the token details:
-   * **Token name**: `Template Sync Token`.
-   * **Expiration**: Select your preferred duration (e.g., 90 days).
-   * **Repository access**: Choose **Only select repositories** and select your target consumer repositories (e.g., `owner/repository`).
-   * **Repository permissions**: Expand **Permissions** -> **Repository permissions** -> Find **Contents** and change access to **Read and Write**.
-5. Click **Generate token**.
-6. **Copy the generated token** immediately. *Note: You will not be able to see this token again once you leave the page.*
+   1. Go to your GitHub account **Settings** (click your profile picture in the top-right -> **Settings**).
+   2. Scroll to the bottom of the left sidebar and click **Developer settings**.
+   3. Click **Personal Access Tokens** -> **Fine-grained tokens** -> **Generate new token**.
+   4. Fill out the token details:
+      * **Token name**: `Template Sync Token`.
+      * **Expiration**: Select your preferred duration (e.g., 90 days).
+      * **Repository access**: Choose **Only select repositories** and select your target consumer repositories (e.g., `owner/repository`).
+      * **Repository permissions**: Expand **Permissions** -> **Repository permissions** -> Find **Contents** and change access to **Read and Write**.
+   5. Click **Generate token**.
+   6. **Copy the generated token** immediately. *Note: You will not be able to see this token again once you leave the page.*
 
-#### Phase 2. Configure the Secret in your Template Repository
-1. Navigate to the template repository (`alejandrocuba/dynamic-scaffolding`) on GitHub.
-2. Click the **Settings** tab at the top.
-3. In the left sidebar, click **Secrets and variables** -> **Actions**.
-4. Click the green **New repository secret** button.
-5. Fill out the fields:
-   * **Name**: `SYNC_TOKEN`
-   * **Secret**: *(Paste the Personal Access Token you copied in the previous step)*
-6. Click **Add secret**.
+2. **Configure the Secret in your Template Repository**:
+   1. Navigate to the template repository (`alejandrocuba/dynamic-scaffolding`) on GitHub.
+   2. Click the **Settings** tab at the top.
+   3. In the left sidebar, click **Secrets and variables** -> **Actions**.
+   4. Click the green **New repository secret** button.
+   5. Fill out the fields:
+      * **Name**: `SYNC_TOKEN`
+      * **Secret**: *(Paste the Personal Access Token you copied in the previous step)*
+   6. Click **Add secret**.

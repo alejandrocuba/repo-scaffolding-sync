@@ -128,6 +128,12 @@ for REPO in "${TARGET_REPOS[@]}"; do
   # Copy files from templates folder to target root
   CHANGES_MADE=false
   for FILE in "${FILES_TO_SYNC[@]}"; do
+    # Skip design system core file if target repository doesn't have a design system
+    if [ "$FILE" = "DESIGN-SYSTEM.core.md" ] && [ ! -f "$REPO_DIR/DESIGN-SYSTEM.md" ]; then
+      echo "Skipping DESIGN-SYSTEM.core.md: Target repository does not have a design system (DESIGN-SYSTEM.md missing)."
+      continue
+    fi
+
     SRC="$PROJECT_ROOT/templates/$FILE"
     DEST="$REPO_DIR/$FILE"
 
@@ -151,7 +157,8 @@ EOF
 )
   prepend_if_missing "$REPO_DIR/AGENTS.md" "AGENTS.core.md" "$AGENTS_BLOCK"
 
-  DESIGN_BLOCK=$(cat << 'EOF'
+  if [ -f "$REPO_DIR/DESIGN-SYSTEM.md" ]; then
+    DESIGN_BLOCK=$(cat << 'EOF'
 # Design System Specification
 
 > [!IMPORTANT]
@@ -159,7 +166,8 @@ EOF
 > It serves as the **single source of truth** for all visual tokens, custom components, and animation settings specific to this UI. **Strict adherence is mandatory.**
 EOF
 )
-  prepend_if_missing "$REPO_DIR/DESIGN-SYSTEM.md" "DESIGN-SYSTEM.core.md" "$DESIGN_BLOCK"
+    prepend_if_missing "$REPO_DIR/DESIGN-SYSTEM.md" "DESIGN-SYSTEM.core.md" "$DESIGN_BLOCK"
+  fi
 
   # Ensure changes are tracked even if only the injected references changed
   CHANGES_MADE=true
