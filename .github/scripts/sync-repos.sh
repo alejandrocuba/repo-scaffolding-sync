@@ -189,6 +189,9 @@ EOF
   if [ "$CHANGES_MADE" = true ]; then
     cd "$REPO_DIR"
 
+    # Capture the default branch name of the target repository before switching
+    DEFAULT_BRANCH=$(git symbolic-ref --short HEAD 2>/dev/null || git branch --show-current 2>/dev/null || echo "main")
+
     # Configure git author
     git config user.name "github-actions[bot]"
     git config user.email "github-actions[bot]@users.noreply.github.com"
@@ -239,7 +242,7 @@ EOF
           gh pr create \
             --title "chore: sync repository scaffolding templates" \
             --body "$PR_BODY" \
-            --base main \
+            --base "$DEFAULT_BRANCH" \
             --head "$BRANCH_NAME"
         else
           echo "Pull Request #$PR_EXISTS already exists and was successfully updated."
