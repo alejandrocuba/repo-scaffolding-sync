@@ -103,3 +103,15 @@ The synchronization script requires write access to the consumer repositories to
          SYNC_TOKEN: ${{ secrets.SYNC_TOKEN }}
          SYNC_TOKEN_ANOTHERNAME: ${{ secrets.SYNC_TOKEN_ANOTHERNAME }}
        ```
+
+## Troubleshooting
+
+### Merging Blocked (Verified Signatures Required)
+
+If your target repository has a branch protection rule requiring **"verified signatures" (signed commits)** on the base branch, standard commits created by GitHub Actions are unsigned and will block the standard "Merge pull request" option.
+
+#### Solution: Use "Squash and Merge"
+1. In the GitHub Web UI of the Pull Request, click the **dropdown arrow** next to the greyed-out **Merge pull request** button.
+2. Select **Squash and merge** from the options.
+3. Click the green **Squash and merge** button.
+4. *Why this works:* GitHub generates the new squashed commit on its own servers and signs it using the GitHub `web-flow` GPG key, which satisfies the verified signature rule.
