@@ -1,0 +1,30 @@
+name: Sync Scaffolding Templates
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'templates/**'
+      - '.github/scripts/sync-repos.sh'
+  workflow_dispatch: # Allows triggering the sync manually from the Actions tab
+
+permissions:
+  contents: read
+
+jobs:
+  sync-templates:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Source Repo
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+
+      - name: Make sync script executable
+        run: chmod +x .github/scripts/sync-repos.sh
+
+      - name: Run synchronization script
+        env:
+          SYNC_TOKEN: ${{ secrets.SYNC_TOKEN }}
+        run: .github/scripts/sync-repos.sh
