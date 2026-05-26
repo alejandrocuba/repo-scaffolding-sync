@@ -114,7 +114,15 @@ for REPO in "${TARGET_REPOS[@]}"; do
   if [ -n "${SYNC_TOKEN:-}" ]; then
     git clone "https://github.com/${REPO}.git" "$REPO_DIR"
   else
-    git clone "git@github.com:${REPO}.git" "$REPO_DIR"
+    if [ "${GITHUB_ACTIONS:-}" = "true" ]; then
+      echo "Error: SYNC_TOKEN environment variable is empty." >&2
+      echo "To synchronize templates in GitHub Actions, you must configure a GitHub Personal Access Token (PAT) with write access to target repositories." >&2
+      echo "Please add it as a Repository Secret named SYNC_TOKEN in: Settings -> Secrets and variables -> Actions." >&2
+      exit 1
+    else
+      echo "No SYNC_TOKEN detected. Running locally; falling back to SSH cloning..."
+      git clone "git@github.com:${REPO}.git" "$REPO_DIR"
+    fi
   fi
 
   # Copy files from templates folder to target root
