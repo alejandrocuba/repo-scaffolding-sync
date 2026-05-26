@@ -49,8 +49,7 @@ To register a new project to receive template updates, open [target-repos.yml](t
 
 ```yaml
 repositories:
-  - yolandasantacruz/yolandasantacruz-portfolio
-  - owner/new-registered-project # Add here
+  - owner/repository
 ```
 
 ### 2. Files to Synchronize
@@ -76,7 +75,7 @@ The synchronization script requires write access to the consumer repositories to
      1. Click **Personal Access Tokens** -> **Fine-grained tokens** -> **Generate new token**.
      2. **Token name**: `Template Sync Token`.
      3. **Expiration**: Choose your preferred duration.
-     4. **Repository access**: Select **Only select repositories** and pick your target consumer repositories (e.g., `yolandasantacruz/yolandasantacruz-portfolio`).
+     4. **Repository access**: Select **Only select repositories** and pick your target consumer repositories (e.g., `owner/repository`).
      5. **Repository permissions**: Expand **Permissions** -> **Repository permissions** -> Find **Contents** -> Change access to **Read and Write**.
      6. Scroll to the bottom and click **Generate token**.
    * **Option 2: Tokens (classic)**:
