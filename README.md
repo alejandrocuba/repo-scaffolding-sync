@@ -92,3 +92,12 @@ The synchronization script requires write access to the consumer repositories to
       * **Name**: `SYNC_TOKEN`
       * **Secret**: *(Paste the Personal Access Token you copied in the previous step)*
    6. Click **Add secret**.
+
+   * **Supporting Multiple Tokens**: If your target repositories span different GitHub organizations or user accounts (requiring separate Fine-Grained tokens):
+     * Name the secrets using the pattern `SYNC_TOKEN_<OWNER>` (where `<OWNER>` is the uppercase name of the target repository owner/organization, with hyphens or periods replaced with underscores). E.g., for `anothername/project`, name the secret `SYNC_TOKEN_ANOTHERNAME`.
+     * Expose the secret as an environment variable in the run step in [.github/workflows/sync.yml](.github/workflows/sync.yml):
+       ```yaml
+       env:
+         SYNC_TOKEN: ${{ secrets.SYNC_TOKEN }}
+         SYNC_TOKEN_ANOTHERNAME: ${{ secrets.SYNC_TOKEN_ANOTHERNAME }}
+       ```

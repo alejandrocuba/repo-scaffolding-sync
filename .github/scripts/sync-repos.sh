@@ -84,21 +84,21 @@ prepend_if_missing() {
 # Execution Logic
 # ==============================================================================
 
-# Setup secure git authentication config to avoid passing tokens in URLs/logs
-if [ -n "${SYNC_TOKEN:-}" ]; then
-  git config --global url."https://x-access-token:${SYNC_TOKEN}@github.com/".insteadOf "https://github.com/"
-fi
-
-# Temporary working directory (creates in workspace to comply with sandboxed environments)
-TEMP_DIR=$(mktemp -d ./tmp-sync-XXXXXX 2>/dev/null || mktemp -d)
+# Array to keep track of configured url rewrites for cleanup
+CONFIGURED_REWRITES=()
 cleanup() {
   echo "Cleaning up..."
-  if [ -n "${SYNC_TOKEN:-}" ]; then
-    git config --global --unset-all url."https://x-access-token:${SYNC_TOKEN}@github.com/".insteadOf || true
-  fi
+  for REWRITE in "${CONFIGURED_REWRITES[@]:-}"; do
+    if [ -n "$REWRITE" ]; then
+      git config --global --unset-all "$REWRITE" || true
+    fi
+  done
   rm -rf "$TEMP_DIR"
 }
 trap cleanup EXIT
+
+# Temporary working directory (creates in workspace to comply with sandboxed environments)
+TEMP_DIR=$(mktemp -d ./tmp-sync-XXXXXX 2>/dev/null || mktemp -d)
 
 echo "Starting synchronization of scaffolding templates..."
 
@@ -107,20 +107,34 @@ for REPO in "${TARGET_REPOS[@]}"; do
   echo "Processing target repository: $REPO"
   echo "--------------------------------------------------"
 
+  # Parse the repository owner and look up repository-specific token
+  OWNER=$(echo "$REPO" | cut -d'/' -f1)
+  OWNER_UPPER=$(echo "$OWNER" | tr '[:lower:]' '[:upper:]' | tr '-' '_' | tr '.' '_')
+  TOKEN_VAR="SYNC_TOKEN_${OWNER_UPPER}"
+  # Retrieve variable by name (using indirect variable expansion)
+  REPO_TOKEN="${!TOKEN_VAR:-${SYNC_TOKEN:-}}"
+
   REPO_DIR="$TEMP_DIR/$REPO"
   mkdir -p "$(dirname "$REPO_DIR")"
 
-  # Clone target repo securely (uses HTTPS with token if available, otherwise SSH)
-  if [ -n "${SYNC_TOKEN:-}" ]; then
+  # Configure URL rewrite rule for this specific repository
+  if [ -n "$REPO_TOKEN" ]; then
+    REWRITE_URL="https://x-access-token:${REPO_TOKEN}@github.com/${REPO}.git"
+    git config --global url."$REWRITE_URL".insteadOf "https://github.com/${REPO}.git"
+    CONFIGURED_REWRITES+=("url.${REWRITE_URL}.insteadOf")
+  fi
+
+  # Clone target repo securely
+  if [ -n "$REPO_TOKEN" ]; then
     git clone "https://github.com/${REPO}.git" "$REPO_DIR"
   else
     if [ "${GITHUB_ACTIONS:-}" = "true" ]; then
-      echo "Error: SYNC_TOKEN environment variable is empty." >&2
+      echo "Error: Neither $TOKEN_VAR nor SYNC_TOKEN environment variables are set." >&2
       echo "To synchronize templates in GitHub Actions, you must configure a GitHub Personal Access Token (PAT) with write access to target repositories." >&2
-      echo "Please add it as a Repository Secret named SYNC_TOKEN in: Settings -> Secrets and variables -> Actions." >&2
+      echo "Please add it as a Repository Secret named SYNC_TOKEN or $TOKEN_VAR." >&2
       exit 1
     else
-      echo "No SYNC_TOKEN detected. Running locally; falling back to SSH cloning..."
+      echo "No token detected for $REPO. Running locally; falling back to SSH cloning..."
       git clone "git@github.com:${REPO}.git" "$REPO_DIR"
     fi
   fi
@@ -206,8 +220,8 @@ EOF
 
       if command -v gh >/dev/null 2>&1; then
         # Open Pull Request via GitHub CLI
-        if [ -n "${SYNC_TOKEN:-}" ]; then
-          export GITHUB_TOKEN="$SYNC_TOKEN"
+        if [ -n "$REPO_TOKEN" ]; then
+          export GITHUB_TOKEN="$REPO_TOKEN"
         fi
         
         # Check if PR already exists
@@ -238,6 +252,11 @@ EOF
     fi
     
     cd - > /dev/null
+  fi
+
+  # Remove the URL rewrite rule for this specific repository
+  if [ -n "$REPO_TOKEN" ]; then
+    git config --global --unset-all url."$REWRITE_URL".insteadOf || true
   fi
 done
 

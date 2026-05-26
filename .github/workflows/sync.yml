@@ -29,4 +29,6 @@ jobs:
       - name: Run synchronization script
         env:
           SYNC_TOKEN: ${{ secrets.SYNC_TOKEN }}
+          # To use different tokens for different organizations or owners (e.g. for Fine-Grained PATs):
+          # SYNC_TOKEN_OWNERNAME: ${{ secrets.SYNC_TOKEN_OWNERNAME }}
         run: .github/scripts/sync-repos.sh
