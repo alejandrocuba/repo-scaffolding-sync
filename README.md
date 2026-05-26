@@ -1,5 +1,7 @@
 # Dynamic Scaffolding
 
+[![Sync Scaffolding Templates](https://github.com/alejandrocuba/dynamic-scaffolding/actions/workflows/sync.yml/badge.svg)](https://github.com/alejandrocuba/dynamic-scaffolding/actions/workflows/sync.yml)
+
 This repository serves as the central **single source of truth** for scaffolding files, guidelines, and standards across all our projects.
 
 Any changes made to the files in the `templates/` directory are automatically synchronized and propagated to all consumer repositories listed in the synchronization workflow.
