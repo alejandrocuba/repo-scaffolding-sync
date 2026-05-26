@@ -69,7 +69,7 @@ files:
 
 The synchronization script requires write access to the consumer repositories to push branches and open Pull Requests. To configure this:
 
-#### A. Generate a Fine-Grained Personal Access Token (PAT)
+#### Phase 1. Generate a Fine-Grained Personal Access Token (PAT)
 Fine-grained PATs are recommended as they follow the principle of least privilege, restricting access to only the specific target repositories.
 
 1. Go to your GitHub account **Settings** (click your profile picture in the top-right -> **Settings**).
@@ -83,7 +83,7 @@ Fine-grained PATs are recommended as they follow the principle of least privileg
 5. Click **Generate token**.
 6. **Copy the generated token** immediately. *Note: You will not be able to see this token again once you leave the page.*
 
-#### B. Configure the Secret in your Template Repository
+#### Phase 2. Configure the Secret in your Template Repository
 1. Navigate to the template repository (`alejandrocuba/dynamic-scaffolding`) on GitHub.
 2. Click the **Settings** tab at the top.
 3. In the left sidebar, click **Secrets and variables** -> **Actions**.
