@@ -1,4 +1,5 @@
 # List of consumer repositories to synchronize
 repositories:
   - alejandrocuba/alejandrocuba-website
+  - alejandrocuba/angularidades-ops
   # - yolandasantacruz/yolandasantacruz-portfolio
