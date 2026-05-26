@@ -60,7 +60,7 @@ To add or remove files from the synchronization loop, edit [files-to-sync.yml](f
 files:
   - AGENTS.core.md
   - DESIGN-SYSTEM.core.md
-  # - pnpm-workspace.yaml  (commented out files are ignored)
+  - [Add more files here...]
 ```
 
 ### 3. GitHub Secrets Setup

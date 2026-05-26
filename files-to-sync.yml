@@ -11,6 +11,5 @@ files:
   - .cursorignore
   - .copilotignore
   - .gptignore
-  # Monorepo files (uncomment for repositories that use pnpm workspaces)
-  # - pnpm-workspace.yaml
-  # - .npmrc
+  - pnpm-workspace.yaml
+  - .npmrc
