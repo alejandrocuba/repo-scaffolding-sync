@@ -3,7 +3,7 @@ files:
   - AGENTS.core.md
   - DESIGN-SYSTEM.core.md
   - SECURITY.md
-  - LICENSE
+  # - LICENSE
   - CONTRIBUTING.md
   - .gitignore
   - .aiignore

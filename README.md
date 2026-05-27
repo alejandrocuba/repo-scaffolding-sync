@@ -27,7 +27,6 @@ dynamic-scaffolding/
 │   ├── CONTRIBUTING.md          # Project Contribution Guidelines
 │   ├── DESIGN-SYSTEM.core.md    # Core Design Specification spec (read-only)
 │   ├── DESIGN-SYSTEM.md         # Local Design Specification starter
-│   ├── LICENSE                  # MIT License template
 │   └── SECURITY.md              # Security and vulnerability disclosure policy
 ├── target-repos.yml             # Configuration: Target repositories list
 └── files-to-sync.yml            # Configuration: Files to synchronize list
