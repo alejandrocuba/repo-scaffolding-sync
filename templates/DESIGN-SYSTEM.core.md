@@ -3,7 +3,8 @@
 This document is the **single source of truth** for central visual styling, layout responsiveness, animation performance, and accessibility standards across all projects.
 
 > [!NOTE]
-> Project-specific typography, assets, colors, and components are defined in the project's root `DESIGN-SYSTEM.md` and inherit these rules.
+> * Synced from `alejandrocuba/dynamic-scaffolding` GitHub repository. Do not edit directly; changes will be overwritten on updates.
+> * Project-specific typography, assets, colors, and components are defined in the project's root `DESIGN-SYSTEM.md` and inherit these rules.
 
 ## 1. Performance & Rendering Philosophy
 * **Rendering**: Use `content-visibility: auto` + `contain-intrinsic-size` (using relative units `lh`/`rem`) on off-screen/content-heavy sections to prevent DOM render lag. Use `contain: layout style paint` for component isolation.
