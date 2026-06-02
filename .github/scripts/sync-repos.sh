@@ -153,7 +153,12 @@ for REPO in "${TARGET_REPOS[@]}"; do
 
     if [ -f "$SRC" ]; then
       mkdir -p "$(dirname "$DEST")"
-      cp "$SRC" "$DEST"
+      if [ "$FILE" = "pnpm-workspace.yaml" ] && [ -f "$DEST" ]; then
+        echo "Merging template and local pnpm-workspace.yaml for $REPO..."
+        python3 "$PROJECT_ROOT/.github/scripts/merge-pnpm-workspace.py" "$SRC" "$DEST" "$DEST"
+      else
+        cp "$SRC" "$DEST"
+      fi
       CHANGES_MADE=true
     else
       echo "Warning: Template $SRC not found, skipping."

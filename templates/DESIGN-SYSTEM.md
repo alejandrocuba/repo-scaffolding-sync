@@ -1,8 +1,8 @@
 # Design System Specification
 
 > [!IMPORTANT]
-> This document inherits and extends the global design and accessibility standards defined in the central [Core Design Specification (DESIGN-SYSTEM.core.md)](DESIGN-SYSTEM.core.md).
-> It serves as the **single source of truth** for all visual tokens, custom components, and animation settings specific to this UI. **Strict adherence is mandatory.**
+> This document extends [Core Design Specification (DESIGN-SYSTEM.core.md)](DESIGN-SYSTEM.core.md).
+> All contributors and AI agents must adhere to the core design rules plus the project-specific rules defined below.
 
 ## 1. Project Visual Identity & Fonts
 Define the project-specific typography and assets:
