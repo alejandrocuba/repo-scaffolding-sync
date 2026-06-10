@@ -114,15 +114,17 @@ for REPO in "${TARGET_REPOS[@]}"; do
   REPO_DIR="$TEMP_DIR/$REPO"
   mkdir -p "$(dirname "$REPO_DIR")"
 
-  # Clone target repo securely
+  # Clone target repo securely using GitHub CLI and local credential helper (prevents token leakage and config conflicts)
   if [ -n "$REPO_TOKEN" ]; then
-    # Base64-encode the token for HTTP Basic authentication
-    B64_TOKEN=$(printf "x-access-token:%s" "$REPO_TOKEN" | base64 | tr -d '\n')
-    git clone -c http.extraHeader="Authorization: Basic $B64_TOKEN" "https://github.com/${REPO}.git" "$REPO_DIR"
+    export GITHUB_TOKEN="$REPO_TOKEN"
+    gh repo clone "$REPO" "$REPO_DIR"
 
-    # Configure the authorization header locally in the cloned repository
+    # Configure Git locally inside the cloned repository
     cd "$REPO_DIR"
-    git config http.https://github.com/.extraHeader "Authorization: Basic $B64_TOKEN"
+    # Clear GHA's inherited global extraHeader to prevent duplicate header errors
+    git config --local http.https://github.com/.extraheader ""
+    # Use GitHub CLI as the credential helper for all git operations in this repository
+    git config --local credential.helper "!gh auth git-credential"
     cd - > /dev/null
   else
     if [ "${GITHUB_ACTIONS:-}" = "true" ]; then
