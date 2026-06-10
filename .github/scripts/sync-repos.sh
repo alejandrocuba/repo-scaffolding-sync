@@ -84,15 +84,8 @@ prepend_if_missing() {
 # Execution Logic
 # ==============================================================================
 
-# Array to keep track of configured url rewrites for cleanup
-CONFIGURED_REWRITES=()
 cleanup() {
   echo "Cleaning up..."
-  for REWRITE in "${CONFIGURED_REWRITES[@]:-}"; do
-    if [ -n "$REWRITE" ]; then
-      git config --global --unset-all "$REWRITE" || true
-    fi
-  done
   rm -rf "$TEMP_DIR"
 }
 trap cleanup EXIT
@@ -121,16 +114,16 @@ for REPO in "${TARGET_REPOS[@]}"; do
   REPO_DIR="$TEMP_DIR/$REPO"
   mkdir -p "$(dirname "$REPO_DIR")"
 
-  # Configure URL rewrite rule for this specific repository
-  if [ -n "$REPO_TOKEN" ]; then
-    REWRITE_URL="https://x-access-token:${REPO_TOKEN}@github.com/${REPO}.git"
-    git config --global url."$REWRITE_URL".insteadOf "https://github.com/${REPO}.git"
-    CONFIGURED_REWRITES+=("url.${REWRITE_URL}.insteadOf")
-  fi
-
   # Clone target repo securely
   if [ -n "$REPO_TOKEN" ]; then
-    git clone "https://github.com/${REPO}.git" "$REPO_DIR"
+    # Base64-encode the token for HTTP Basic authentication
+    B64_TOKEN=$(printf "x-access-token:%s" "$REPO_TOKEN" | base64 | tr -d '\n')
+    git clone -c http.extraHeader="Authorization: Basic $B64_TOKEN" "https://github.com/${REPO}.git" "$REPO_DIR"
+
+    # Configure the authorization header locally in the cloned repository
+    cd "$REPO_DIR"
+    git config http.https://github.com/.extraHeader "Authorization: Basic $B64_TOKEN"
+    cd - > /dev/null
   else
     if [ "${GITHUB_ACTIONS:-}" = "true" ]; then
       echo "Error: Neither $TOKEN_VAR nor SYNC_TOKEN environment variables are set." >&2
@@ -267,11 +260,6 @@ EOF
     fi
     
     cd - > /dev/null
-  fi
-
-  # Remove the URL rewrite rule for this specific repository
-  if [ -n "$REPO_TOKEN" ]; then
-    git config --global --unset-all url."$REWRITE_URL".insteadOf || true
   fi
 
   if [ "${GITHUB_ACTIONS:-}" = "true" ]; then
