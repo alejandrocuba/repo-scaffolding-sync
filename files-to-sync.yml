@@ -3,7 +3,6 @@ files:
   - AGENTS.core.md
   - DESIGN-SYSTEM.core.md
   - SECURITY.md
-  # - LICENSE
   - CONTRIBUTING.md
   - .gitignore
   - .aiignore
@@ -13,3 +12,5 @@ files:
   - .gptignore
   - pnpm-workspace.yaml
   - .npmrc
+  - .prettierrc
+  - .prettierignore

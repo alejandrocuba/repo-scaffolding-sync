@@ -75,14 +75,14 @@ The synchronization script requires write access to the consumer repositories to
    2. Scroll to the bottom of the left sidebar and click **Developer settings**.
    3. Click **Personal Access Tokens** -> **Fine-grained tokens** -> **Generate new token**.
    4. Fill out the token details:
-      * **Token name**: `Template Sync Token`.
-      * **Expiration**: Select your preferred duration (e.g., 90 days).
-      * **Repository access**: Select **Only select repositories** and pick your target consumer repositories (e.g., `owner/repository`).
-      * **Repository permissions**: Expand **Permissions** -> **Repository permissions** and set:
-        * **Contents**: Select **Read and Write** (required to push the scaffolding updates branch).
-        * **Pull requests**: Select **Read and Write** (required to open and manage Pull Requests via GitHub CLI).
+      - **Token name**: `Template Sync Token`.
+      - **Expiration**: Select your preferred duration (e.g., 90 days).
+      - **Repository access**: Select **Only select repositories** and pick your target consumer repositories (e.g., `owner/repository`).
+      - **Repository permissions**: Expand **Permissions** -> **Repository permissions** and set:
+        - **Contents**: Select **Read and Write** (required to push the scaffolding updates branch).
+        - **Pull requests**: Select **Read and Write** (required to open and manage Pull Requests via GitHub CLI).
    5. Click **Generate token**.
-   6. **Copy the generated token** immediately. *Note: You will not be able to see this token again once you leave the page.*
+   6. **Copy the generated token** immediately. _Note: You will not be able to see this token again once you leave the page._
 
 2. **Configure the Secret in your Template Repository**:
    1. Navigate to the template repository (`alejandrocuba/dynamic-scaffolding`) on GitHub.
@@ -90,13 +90,12 @@ The synchronization script requires write access to the consumer repositories to
    3. In the left sidebar, click **Secrets and variables** -> **Actions**.
    4. Click the green **New repository secret** button.
    5. Fill out the fields:
-      * **Name**: `SYNC_TOKEN`
-      * **Secret**: *(Paste the Personal Access Token you copied in the previous step)*
+      - **Name**: `SYNC_TOKEN`
+      - **Secret**: _(Paste the Personal Access Token you copied in the previous step)_
    6. Click **Add secret**.
-
-   * **Supporting Multiple Tokens**: If your target repositories span different GitHub organizations or user accounts (requiring separate Fine-Grained tokens):
-     * Name the secrets using the pattern `SYNC_TOKEN_<OWNER>` (where `<OWNER>` is the uppercase name of the target repository owner/organization, with hyphens or periods replaced with underscores). E.g., for `anothername/project`, name the secret `SYNC_TOKEN_ANOTHERNAME`.
-     * Expose the secret as an environment variable in the run step in [.github/workflows/sync.yml](.github/workflows/sync.yml):
+   - **Supporting Multiple Tokens**: If your target repositories span different GitHub organizations or user accounts (requiring separate Fine-Grained tokens):
+     - Name the secrets using the pattern `SYNC_TOKEN_<OWNER>` (where `<OWNER>` is the uppercase name of the target repository owner/organization, with hyphens or periods replaced with underscores). E.g., for `anothername/project`, name the secret `SYNC_TOKEN_ANOTHERNAME`.
+     - Expose the secret as an environment variable in the run step in [.github/workflows/sync.yml](.github/workflows/sync.yml):
        ```yaml
        env:
          SYNC_TOKEN: ${{ secrets.SYNC_TOKEN }}
