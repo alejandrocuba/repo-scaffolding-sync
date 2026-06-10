@@ -136,7 +136,8 @@ def main():
                 break
         for pkg, allowed in sorted(merged_allow.items()):
             val_str = "true" if allowed else "false"
-            merged_blocks['allowBuilds'].append(f"  {pkg}: {val_str}")
+            pkg_key = f'"{pkg}"' if pkg.startswith('@') else pkg
+            merged_blocks['allowBuilds'].append(f"  {pkg_key}: {val_str}")
             
     # 3. Security policies
     security_keys = ['blockExoticSubdeps', 'trustPolicy', 'minimumReleaseAge']
