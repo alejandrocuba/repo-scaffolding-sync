@@ -103,9 +103,13 @@ TEMP_DIR=$(mktemp -d ./tmp-sync-XXXXXX 2>/dev/null || mktemp -d)
 echo "Starting synchronization of scaffolding templates..."
 
 for REPO in "${TARGET_REPOS[@]}"; do
-  echo "--------------------------------------------------"
-  echo "Processing target repository: $REPO"
-  echo "--------------------------------------------------"
+  if [ "${GITHUB_ACTIONS:-}" = "true" ]; then
+    echo "::group::Processing target repository: $REPO"
+  else
+    echo "--------------------------------------------------"
+    echo "Processing target repository: $REPO"
+    echo "--------------------------------------------------"
+  fi
 
   # Parse the repository owner and look up repository-specific token
   OWNER=$(echo "$REPO" | cut -d'/' -f1)
@@ -213,6 +217,9 @@ EOF
       git add .
       git commit -m "chore: sync repository scaffolding templates"
 
+      # Delete local remote-tracking branch reference to prevent sync/lock conflicts
+      git update-ref -d "refs/remotes/origin/$BRANCH_NAME" || true
+
       # Push branch to remote (force push to overwrite previous template updates)
       git push origin "$BRANCH_NAME" --force
 
@@ -265,6 +272,10 @@ EOF
   # Remove the URL rewrite rule for this specific repository
   if [ -n "$REPO_TOKEN" ]; then
     git config --global --unset-all url."$REWRITE_URL".insteadOf || true
+  fi
+
+  if [ "${GITHUB_ACTIONS:-}" = "true" ]; then
+    echo "::endgroup::"
   fi
 done
 

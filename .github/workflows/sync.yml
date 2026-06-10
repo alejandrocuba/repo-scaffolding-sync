@@ -1,4 +1,4 @@
-name: Sync Scaffolding Templates
+name: Scaffolding Synchronization Pipeline
 
 on:
   push:
@@ -11,24 +11,34 @@ on:
       - 'files-to-sync.yml'
   workflow_dispatch: # Allows triggering the sync manually from the Actions tab
 
+concurrency:
+  group: scaffolding-sync-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
 jobs:
-  sync-templates:
+  sync-scaffolding:
+    name: Synchronize Scaffolding Templates
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Source Repo
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@v4
         with:
           persist-credentials: false
+          fetch-depth: 1
 
-      - name: Make sync script executable
+      - name: Set up Python Environment
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Configure Execution Permissions
         run: chmod +x .github/scripts/sync-repos.sh
 
-      - name: Run synchronization script
+      - name: Execute Template Sync
         env:
           SYNC_TOKEN: ${{ secrets.SYNC_TOKEN }}
           SYNC_TOKEN_YOLANDASANTACRUZ: ${{ secrets.SYNC_TOKEN_YOLANDASANTACRUZ }}
-          # SYNC_TOKEN_OWNERNAME: ${{ secrets.SYNC_TOKEN_OWNERNAME }}
         run: .github/scripts/sync-repos.sh
