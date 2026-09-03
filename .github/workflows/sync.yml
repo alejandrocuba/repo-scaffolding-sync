@@ -41,4 +41,5 @@ jobs:
         env:
           SYNC_TOKEN: ${{ secrets.SYNC_TOKEN }}
           SYNC_TOKEN_YOLANDASANTACRUZ: ${{ secrets.SYNC_TOKEN_YOLANDASANTACRUZ }}
+          SYNC_TOKEN_ZELENIA_LABS: ${{ secrets.SYNC_TOKEN_ZELENIA_LABS }}
         run: .github/scripts/sync-repos.sh
