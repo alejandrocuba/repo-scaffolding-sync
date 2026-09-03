@@ -36,6 +36,8 @@ jobs:
 
       - name: Set up pnpm
         uses: pnpm/action-setup@v4
+        with:
+          version: 11
 
       - name: Configure Execution Permissions
         run: chmod +x .github/scripts/*.sh .github/scripts/*.py
