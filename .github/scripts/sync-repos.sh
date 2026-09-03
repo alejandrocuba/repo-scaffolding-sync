@@ -158,6 +158,9 @@ for REPO in "${TARGET_REPOS[@]}"; do
       else
         cp "$SRC" "$DEST"
       fi
+      if [[ "$FILE" == .husky/* ]]; then
+        chmod +x "$DEST"
+      fi
       CHANGES_MADE=true
     else
       echo "Warning: Template $SRC not found, skipping."
@@ -185,6 +188,20 @@ EOF
 EOF
 )
     prepend_if_missing "$REPO_DIR/DESIGN-SYSTEM.md" "DESIGN-SYSTEM.core.md" "$DESIGN_BLOCK"
+  fi
+
+  # Ensure husky and commitlint dependencies are configured in package.json
+  if [ -f "$REPO_DIR/package.json" ]; then
+    echo "Checking husky and commitlint in $REPO/package.json..."
+    PKG_STATUS=$(python3 "$PROJECT_ROOT/.github/scripts/merge-package-json.py" "$REPO_DIR/package.json")
+    echo "$PKG_STATUS"
+    if [[ "$PKG_STATUS" == MODIFIED* ]]; then
+      CHANGES_MADE=true
+      if command -v pnpm >/dev/null 2>&1 && [ -f "$REPO_DIR/pnpm-lock.yaml" ]; then
+        echo "Updating pnpm-lock.yaml for $REPO..."
+        (cd "$REPO_DIR" && pnpm install --lockfile-only) || echo "Warning: Could not update pnpm-lock.yaml"
+      fi
+    fi
   fi
 
   # Ensure changes are tracked even if only the injected references changed

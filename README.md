@@ -12,24 +12,35 @@ Any changes made to the files in the `templates/` directory are automatically sy
 dynamic-scaffolding/
 ├── .github/
 │   ├── scripts/
-│   │   └── sync-repos.sh        # Sync script to clone and push updates
+│   │   ├── merge-package-json.py    # Auto-merge husky/commitlint into package.json
+│   │   ├── merge-pnpm-workspace.py  # Merge workspace settings
+│   │   └── sync-repos.sh            # Sync script to clone and push updates
 │   └── workflows/
-│       └── sync.yml             # GitHub Action triggered on push to main
-├── templates/                   # Inherited scaffolding files
-│   ├── .aiignore                # Template for AI tool exclusions (global)
-│   ├── .claudeignore            # Template for Claude Code exclusions
-│   ├── .copilotignore           # Template for GitHub Copilot exclusions
-│   ├── .cursorignore            # Template for Cursor IDE exclusions
-│   ├── .gitignore               # Template for standard git exclusions
-│   ├── .gptignore               # Template for GPT-based agent exclusions
-│   ├── AGENTS.core.md           # Core Agentic Protocols spec (read-only)
-│   ├── AGENTS.md                # Local Agentic Protocols starter
-│   ├── CONTRIBUTING.md          # Project Contribution Guidelines
-│   ├── DESIGN-SYSTEM.core.md    # Core Design Specification spec (read-only)
-│   ├── DESIGN-SYSTEM.md         # Local Design Specification starter
-│   └── SECURITY.md              # Security and vulnerability disclosure policy
-├── target-repos.yml             # Configuration: Target repositories list
-└── files-to-sync.yml            # Configuration: Files to synchronize list
+│       ├── pr-title-check.yml       # PR Title validation workflow (SemVer)
+│       ├── release-please.yml       # Release & Version Bump workflow
+│       └── sync.yml                 # GitHub Action triggered on push to main
+├── templates/                       # Inherited scaffolding files
+│   ├── .aiignore                    # Template for AI tool exclusions (global)
+│   ├── .claudeignore                # Template for Claude Code exclusions
+│   ├── .commitlintrc.json           # Template for Conventional Commits rules
+│   ├── .copilotignore               # Template for GitHub Copilot exclusions
+│   ├── .cursorignore                # Template for Cursor IDE exclusions
+│   ├── .github/
+│   │   └── workflows/
+│   │       ├── pr-title-check.yml   # PR Title validation template
+│   │       └── release-please.yml   # Release & Version Bump template
+│   ├── .gitignore                   # Template for standard git exclusions
+│   ├── .gptignore                   # Template for GPT-based agent exclusions
+│   ├── .husky/
+│   │   └── commit-msg               # Template for commit-msg hook
+│   ├── AGENTS.core.md               # Core Agentic Protocols spec (read-only)
+│   ├── AGENTS.md                    # Local Agentic Protocols starter
+│   ├── CONTRIBUTING.md              # Project Contribution Guidelines
+│   ├── DESIGN-SYSTEM.core.md        # Core Design Specification spec (read-only)
+│   ├── DESIGN-SYSTEM.md             # Local Design Specification starter
+│   └── SECURITY.md                  # Security and vulnerability disclosure policy
+├── target-repos.yml                 # Configuration: Target repositories list
+└── files-to-sync.yml                # Configuration: Files to synchronize list
 ```
 
 ## How It Works
@@ -101,3 +112,36 @@ The synchronization script requires write access to the consumer repositories to
          SYNC_TOKEN: ${{ secrets.SYNC_TOKEN }}
          SYNC_TOKEN_ANOTHERNAME: ${{ secrets.SYNC_TOKEN_ANOTHERNAME }}
        ```
+
+## Automated Releases & Conventional Commits
+
+All projects synchronized by this scaffolding enforce automated SemVer versioning and GitHub releases via [Release Please](https://github.com/googleapis/release-please).
+
+### Workflow & Quality Gates
+
+1. **Conventional Commits**: Commits and Pull Request titles must follow the [Conventional Commits](https://www.conventionalcommits.org/) format (`feat:`, `fix:`, `chore:`, etc.).
+2. **Commitlint Hook**: Local commits are verified before creation via Husky (`.husky/commit-msg`).
+3. **PR Title Validation**: The `pr-title-check.yml` workflow verifies in CI that every PR title adheres to Conventional Commits.
+4. **Squash & Merge**: When a PR is squash-merged, its title becomes the commit message on `main`.
+5. **Release Please Execution**: On push to `main`, `release-please.yml` evaluates commits since the last release tag:
+   - `feat:` creates a **MINOR** release (`0.1.0` -> `0.2.0`).
+   - `fix:` / `perf:` creates a **PATCH** release (`0.1.0` -> `0.1.1`).
+   - `feat!:` / `fix!:` / `BREAKING CHANGE:` creates a **MAJOR** release (`1.0.0` -> `2.0.0`).
+   - Release PRs bump `package.json`, update `CHANGELOG.md`, and are automatically squash-merged via `gh pr merge`.
+
+### GitHub Repository Prerequisites
+
+For automated releases to operate successfully in each repository, configure the following repository settings:
+
+1. **Allow Auto-Merge**:
+   - Go to **Settings** -> **General** -> **Pull Requests**.
+   - Enable **Allow auto-merge**.
+2. **Workflow Permissions**:
+   - Go to **Settings** -> **Actions** -> **General** -> **Workflow permissions**.
+   - Select **Read and write permissions**.
+   - Check **Allow GitHub Actions to create and approve pull requests**.
+3. **Preventing Redundant Workflows on Release PRs**:
+   - In workflows that run on pull requests (e.g., preview deployments or tests), add this condition to skip runs on release branches:
+     ```yaml
+     if: "${{ !startsWith(github.head_ref, 'release-please') }}"
+     ```

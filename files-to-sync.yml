@@ -14,3 +14,7 @@ files:
   - .npmrc
   - .prettierrc
   - .prettierignore
+  - .github/workflows/release-please.yml
+  - .github/workflows/pr-title-check.yml
+  - .commitlintrc.json
+  - .husky/commit-msg
