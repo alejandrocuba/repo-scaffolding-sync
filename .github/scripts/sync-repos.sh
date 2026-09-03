@@ -95,23 +95,23 @@ TEMP_DIR=$(mktemp -d ./tmp-sync-XXXXXX 2>/dev/null || mktemp -d)
 
 echo "Starting synchronization of scaffolding templates..."
 
-for REPO in "${TARGET_REPOS[@]}"; do
-  if [ "${GITHUB_ACTIONS:-}" = "true" ]; then
-    echo "::group::Processing target repository: $REPO"
-  else
-    echo "--------------------------------------------------"
-    echo "Processing target repository: $REPO"
-    echo "--------------------------------------------------"
-  fi
+# ==============================================================================
+# Single Repository Synchronization
+# ==============================================================================
+
+sync_repo() {
+  local REPO="$1"
 
   # Parse the repository owner and look up repository-specific token
+  local OWNER
   OWNER=$(echo "$REPO" | cut -d'/' -f1)
+  local OWNER_UPPER
   OWNER_UPPER=$(echo "$OWNER" | tr '[:lower:]' '[:upper:]' | tr '-' '_' | tr '.' '_')
-  TOKEN_VAR="SYNC_TOKEN_${OWNER_UPPER}"
+  local TOKEN_VAR="SYNC_TOKEN_${OWNER_UPPER}"
   # Retrieve variable by name (using indirect variable expansion)
-  REPO_TOKEN="${!TOKEN_VAR:-${SYNC_TOKEN:-}}"
+  local REPO_TOKEN="${!TOKEN_VAR:-${SYNC_TOKEN:-}}"
 
-  REPO_DIR="$TEMP_DIR/$REPO"
+  local REPO_DIR="$TEMP_DIR/$REPO"
   mkdir -p "$(dirname "$REPO_DIR")"
 
   # Clone target repo securely using GitHub CLI and local credential helper (prevents token leakage and config conflicts)
@@ -131,7 +131,7 @@ for REPO in "${TARGET_REPOS[@]}"; do
       echo "Error: Neither $TOKEN_VAR nor SYNC_TOKEN environment variables are set." >&2
       echo "To synchronize templates in GitHub Actions, you must configure a GitHub Personal Access Token (PAT) with write access to target repositories." >&2
       echo "Please add it as a Repository Secret named SYNC_TOKEN or $TOKEN_VAR." >&2
-      exit 1
+      return 1
     else
       echo "No token detected for $REPO. Running locally; falling back to SSH cloning..."
       git clone "git@github.com:${REPO}.git" "$REPO_DIR"
@@ -139,7 +139,7 @@ for REPO in "${TARGET_REPOS[@]}"; do
   fi
 
   # Copy files from templates folder to target root
-  CHANGES_MADE=false
+  local CHANGES_MADE=false
   for FILE in "${FILES_TO_SYNC[@]}"; do
     # Skip design system core file if target repository doesn't have a design system
     if [ "$FILE" = "DESIGN-SYSTEM.core.md" ] && [ ! -f "$REPO_DIR/DESIGN-SYSTEM.md" ]; then
@@ -147,8 +147,8 @@ for REPO in "${TARGET_REPOS[@]}"; do
       continue
     fi
 
-    SRC="$PROJECT_ROOT/templates/$FILE"
-    DEST="$REPO_DIR/$FILE"
+    local SRC="$PROJECT_ROOT/templates/$FILE"
+    local DEST="$REPO_DIR/$FILE"
 
     if [ -f "$SRC" ]; then
       mkdir -p "$(dirname "$DEST")"
@@ -168,6 +168,7 @@ for REPO in "${TARGET_REPOS[@]}"; do
   done
 
   # Inject inheritance references to AGENTS.md and DESIGN-SYSTEM.md if they are missing
+  local AGENTS_BLOCK
   AGENTS_BLOCK=$(cat << 'EOF'
 # Agentic Engineering Protocols
 
@@ -179,6 +180,7 @@ EOF
   prepend_if_missing "$REPO_DIR/AGENTS.md" "AGENTS.core.md" "$AGENTS_BLOCK"
 
   if [ -f "$REPO_DIR/DESIGN-SYSTEM.md" ]; then
+    local DESIGN_BLOCK
     DESIGN_BLOCK=$(cat << 'EOF'
 # Design System Specification
 
@@ -193,6 +195,7 @@ EOF
   # Ensure husky and commitlint dependencies are configured in package.json
   if [ -f "$REPO_DIR/package.json" ]; then
     echo "Checking husky and commitlint in $REPO/package.json..."
+    local PKG_STATUS
     PKG_STATUS=$(python3 "$PROJECT_ROOT/.github/scripts/merge-package-json.py" "$REPO_DIR/package.json")
     echo "$PKG_STATUS"
     if [[ "$PKG_STATUS" == MODIFIED* ]]; then
@@ -211,6 +214,7 @@ EOF
     cd "$REPO_DIR"
 
     # Capture the default branch name of the target repository before switching
+    local DEFAULT_BRANCH
     DEFAULT_BRANCH=$(git symbolic-ref --short HEAD 2>/dev/null || git branch --show-current 2>/dev/null || echo "main")
 
     # Configure git author
@@ -221,7 +225,7 @@ EOF
     if [ -n "$(git status --porcelain)" ]; then
       echo "Changes detected in $REPO. Preparing update branch..."
 
-      BRANCH_NAME="chore/update-scaffolding"
+      local BRANCH_NAME="chore/update-scaffolding"
       
       # Checkout branch (creates if missing, or resets/switches if already exists)
       git checkout -B "$BRANCH_NAME"
@@ -236,9 +240,10 @@ EOF
       git push origin "$BRANCH_NAME" --force
 
       # Detect host repository for PR body link
-      CURRENT_REPO="${GITHUB_REPOSITORY:-}"
+      local CURRENT_REPO="${GITHUB_REPOSITORY:-}"
       if [ -z "$CURRENT_REPO" ]; then
         # Extract from origin URL
+        local REMOTE_URL
         REMOTE_URL=$(git remote get-url origin 2>/dev/null || echo "")
         if [[ "$REMOTE_URL" =~ github.com[:/]([^/]+/[^.]+)(\.git)? ]]; then
           CURRENT_REPO="${BASH_REMATCH[1]}"
@@ -252,9 +257,10 @@ EOF
         fi
         
         # Check if PR already exists
+        local PR_EXISTS
         PR_EXISTS=$(gh pr list --head "$BRANCH_NAME" --state open --json number -q '.[0].number')
 
-        PR_BODY="This automated PR syncs the latest repository scaffolding templates (AGENTS.md, DESIGN-SYSTEM.md, SECURITY.md, etc.)"
+        local PR_BODY="This automated PR syncs the latest repository scaffolding templates (AGENTS.md, DESIGN-SYSTEM.md, SECURITY.md, etc.)"
         if [ -n "$CURRENT_REPO" ]; then
           PR_BODY="$PR_BODY from the central [repository-scaffolding](https://github.com/${CURRENT_REPO}) repository."
         else
@@ -280,10 +286,61 @@ EOF
     
     cd - > /dev/null
   fi
+}
+
+# ==============================================================================
+# Main Loop with Fault Tolerance
+# ==============================================================================
+
+SUCCESSFUL_REPOS=()
+FAILED_REPOS=()
+
+for REPO in "${TARGET_REPOS[@]}"; do
+  if [ "${GITHUB_ACTIONS:-}" = "true" ]; then
+    echo "::group::Processing target repository: $REPO"
+  else
+    echo "--------------------------------------------------"
+    echo "Processing target repository: $REPO"
+    echo "--------------------------------------------------"
+  fi
+
+  if ( sync_repo "$REPO" ); then
+    echo "Successfully synchronized: $REPO"
+    SUCCESSFUL_REPOS+=("$REPO")
+  else
+    echo "::error::Synchronization failed for repository: $REPO"
+    FAILED_REPOS+=("$REPO")
+  fi
 
   if [ "${GITHUB_ACTIONS:-}" = "true" ]; then
     echo "::endgroup::"
   fi
 done
 
-echo "Scaffolding sync completed successfully!"
+# ==============================================================================
+# Summary Report
+# ==============================================================================
+
+echo ""
+echo "=================================================="
+echo "Scaffolding Synchronization Summary"
+echo "=================================================="
+
+if [ ${#SUCCESSFUL_REPOS[@]} -gt 0 ]; then
+  echo "Successfully synchronized (${#SUCCESSFUL_REPOS[@]}):"
+  for r in "${SUCCESSFUL_REPOS[@]}"; do
+    echo "  - $r"
+  done
+fi
+
+if [ ${#FAILED_REPOS[@]} -gt 0 ]; then
+  echo "Failed repositories (${#FAILED_REPOS[@]}):"
+  for r in "${FAILED_REPOS[@]}"; do
+    echo "  - $r"
+  done
+  echo "=================================================="
+  echo "Error: Synchronization failed for ${#FAILED_REPOS[@]} repository/repositories." >&2
+  exit 1
+fi
+
+echo "All repositories synchronized successfully!"
