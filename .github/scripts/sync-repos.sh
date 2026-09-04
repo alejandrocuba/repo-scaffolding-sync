@@ -8,9 +8,12 @@ PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 REPOS_FILE="$PROJECT_ROOT/target-repos.yml"
 FILES_FILE="$PROJECT_ROOT/files-to-sync.yml"
 
-# Load target repositories from target-repos.yml
+# Load target repositories (from CLI argument if provided, or from target-repos.yml)
 TARGET_REPOS=()
-if [ -f "$REPOS_FILE" ]; then
+if [ $# -gt 0 ] && [ -n "${1:-}" ]; then
+  TARGET_REPOS=("$1")
+  echo "Target repository specified via CLI argument: $1"
+elif [ -f "$REPOS_FILE" ]; then
   while IFS= read -r line || [[ -n "$line" ]]; do
     # Trim leading/trailing whitespace
     line="${line#"${line%%[![:space:]]*}"}"
@@ -331,6 +334,27 @@ if [ ${#SUCCESSFUL_REPOS[@]} -gt 0 ]; then
   for r in "${SUCCESSFUL_REPOS[@]}"; do
     echo "  - $r"
   done
+fi
+
+if [ -n "${GITHUB_STEP_SUMMARY:-}" ]; then
+  {
+    echo "### 📦 Scaffolding Synchronization Report"
+    echo ""
+    if [ ${#SUCCESSFUL_REPOS[@]} -gt 0 ]; then
+      echo "#### ✅ Succeeded"
+      for r in "${SUCCESSFUL_REPOS[@]}"; do
+        echo "- **$r**"
+      done
+      echo ""
+    fi
+    if [ ${#FAILED_REPOS[@]} -gt 0 ]; then
+      echo "#### ❌ Failed"
+      for r in "${FAILED_REPOS[@]}"; do
+        echo "- **$r**"
+      done
+      echo ""
+    fi
+  } >> "$GITHUB_STEP_SUMMARY"
 fi
 
 if [ ${#FAILED_REPOS[@]} -gt 0 ]; then
