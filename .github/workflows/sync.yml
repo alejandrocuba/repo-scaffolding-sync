@@ -20,9 +20,46 @@ permissions:
   contents: read
 
 jobs:
-  sync-scaffolding:
-    name: Synchronize Scaffolding Templates
+  discover-targets:
+    name: Discover Target Repositories
     runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - name: Checkout Source Repo
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+
+      - name: Parse Target Repositories
+        id: set-matrix
+        run: |
+          python3 -c "
+          import json, os
+
+          repos = []
+          with open('target-repos.yml') as f:
+              for line in f:
+                  line = line.strip()
+                  if line.startswith('-'):
+                      repo = line.lstrip('-').strip().strip('\'\"')
+                      if repo:
+                          repos.append(repo)
+
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as out:
+              out.write(f'matrix={json.dumps(repos)}\n')
+          "
+
+  sync-scaffolding:
+    name: Sync ${{ matrix.repo }}
+    needs: discover-targets
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      max-parallel: 4
+      matrix:
+        repo: ${{ fromJson(needs.discover-targets.outputs.matrix) }}
     steps:
       - name: Checkout Source Repo
         uses: actions/checkout@v4
@@ -46,4 +83,4 @@ jobs:
           SYNC_TOKEN: ${{ secrets.SYNC_TOKEN }}
           SYNC_TOKEN_YOLANDASANTACRUZ: ${{ secrets.SYNC_TOKEN_YOLANDASANTACRUZ }}
           SYNC_TOKEN_ZELENIA_LABS: ${{ secrets.SYNC_TOKEN_ZELENIA_LABS }}
-        run: .github/scripts/sync-repos.sh
+        run: .github/scripts/sync-repos.sh "${{ matrix.repo }}"
