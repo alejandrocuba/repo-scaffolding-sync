@@ -2,20 +2,18 @@
 
 ## [1.1.0](https://github.com/alejandrocuba/repo-scaffolding-sync/compare/v1.0.0...v1.1.0) (2026-09-07)
 
-
 ### Features
 
-* add command safety and destructive action guardrails to agent p… ([#7](https://github.com/alejandrocuba/repo-scaffolding-sync/issues/7)) ([af83778](https://github.com/alejandrocuba/repo-scaffolding-sync/commit/af83778cc6816e4f989fa330502bc3a86218e3aa))
-* add yolandasantacruz/saved-pwa to synchronized repositories ([#4](https://github.com/alejandrocuba/repo-scaffolding-sync/issues/4)) ([fc0d138](https://github.com/alejandrocuba/repo-scaffolding-sync/commit/fc0d13812e02c9cf1fb2c991d1d1efbc3cc9e42b))
-* **ci:** add fault tolerance and summary reporting to repository synchronization ([3bc1947](https://github.com/alejandrocuba/repo-scaffolding-sync/commit/3bc1947d04f5b6e5dbe9213b88fcf562aa7c7808))
-* **ci:** implement dynamic matrix strategy for scaffolding synchroni… ([#6](https://github.com/alejandrocuba/repo-scaffolding-sync/issues/6)) ([3311818](https://github.com/alejandrocuba/repo-scaffolding-sync/commit/3311818b0e172adccaf69f970b9cdbfeb78a8854))
-
+- add command safety and destructive action guardrails to agent p… ([#7](https://github.com/alejandrocuba/repo-scaffolding-sync/issues/7)) ([af83778](https://github.com/alejandrocuba/repo-scaffolding-sync/commit/af83778cc6816e4f989fa330502bc3a86218e3aa))
+- add yolandasantacruz/saved-pwa to synchronized repositories ([#4](https://github.com/alejandrocuba/repo-scaffolding-sync/issues/4)) ([fc0d138](https://github.com/alejandrocuba/repo-scaffolding-sync/commit/fc0d13812e02c9cf1fb2c991d1d1efbc3cc9e42b))
+- **ci:** add fault tolerance and summary reporting to repository synchronization ([3bc1947](https://github.com/alejandrocuba/repo-scaffolding-sync/commit/3bc1947d04f5b6e5dbe9213b88fcf562aa7c7808))
+- **ci:** implement dynamic matrix strategy for scaffolding synchroni… ([#6](https://github.com/alejandrocuba/repo-scaffolding-sync/issues/6)) ([3311818](https://github.com/alejandrocuba/repo-scaffolding-sync/commit/3311818b0e172adccaf69f970b9cdbfeb78a8854))
 
 ### Bug Fixes
 
-* **ci:** add job-level permissions to release-please workflow ([#5](https://github.com/alejandrocuba/repo-scaffolding-sync/issues/5)) ([18c15b9](https://github.com/alejandrocuba/repo-scaffolding-sync/commit/18c15b9a6398c4fa7266282e7c6e58f828f7a225))
-* **ci:** avoid pnpm action version conflict and watch sync workflow in paths ([e22bcbb](https://github.com/alejandrocuba/repo-scaffolding-sync/commit/e22bcbbb9c85bf90cef3d1255bd70fa9a597e291))
-* **ci:** use SYNC_TOKEN with fallback in release-please workflow ([#8](https://github.com/alejandrocuba/repo-scaffolding-sync/issues/8)) ([a4889b0](https://github.com/alejandrocuba/repo-scaffolding-sync/commit/a4889b012cae646e7fc2948a699b4a0f574a7b72))
+- **ci:** add job-level permissions to release-please workflow ([#5](https://github.com/alejandrocuba/repo-scaffolding-sync/issues/5)) ([18c15b9](https://github.com/alejandrocuba/repo-scaffolding-sync/commit/18c15b9a6398c4fa7266282e7c6e58f828f7a225))
+- **ci:** avoid pnpm action version conflict and watch sync workflow in paths ([e22bcbb](https://github.com/alejandrocuba/repo-scaffolding-sync/commit/e22bcbbb9c85bf90cef3d1255bd70fa9a597e291))
+- **ci:** use SYNC_TOKEN with fallback in release-please workflow ([#8](https://github.com/alejandrocuba/repo-scaffolding-sync/issues/8)) ([a4889b0](https://github.com/alejandrocuba/repo-scaffolding-sync/commit/a4889b012cae646e7fc2948a699b4a0f574a7b72))
 
 ## 1.0.0 (2026-09-03)
 
