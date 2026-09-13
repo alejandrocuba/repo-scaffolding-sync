@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.1](https://github.com/alejandrocuba/repo-scaffolding-sync/compare/v1.1.0...v1.1.1) (2026-09-13)
+
+
+### Bug Fixes
+
+* **ci:** restore default GITHUB_TOKEN authentication in release-please ([#10](https://github.com/alejandrocuba/repo-scaffolding-sync/issues/10)) ([e860a88](https://github.com/alejandrocuba/repo-scaffolding-sync/commit/e860a88838c0eb1ebde27cc290430e0b3194f811))
+
 ## [1.1.0](https://github.com/alejandrocuba/repo-scaffolding-sync/compare/v1.0.0...v1.1.0) (2026-09-07)
 
 ### Features
